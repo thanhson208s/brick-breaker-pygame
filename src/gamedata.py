@@ -34,9 +34,9 @@ class GameManager:
             if item['type'] == Piece.RECTANGLE:
                 self.pieces.append(RectanglePiece(item['rect'], item['hp']))
             elif item['type'] == Piece.TRIANGLE:
-                pass
+                self.pieces.append(TrianglePiece(item['vectices'], item['hp']))
             elif item['type'] == Piece.CIRCLE:
-                pass
+                self.pieces.append(CirclePiece(item['center'], item['radius'], item['hp']))
 
     def startGame(self):
         if (self.state != GameManager.READY):
@@ -62,23 +62,27 @@ class GameManager:
         isCollided = False
         if self.ball.p.y - self.ball.radius <= 0:
             isCollided = True
+            self.ball.p.y = self.ball.radius
             collisionVector = pygame.math.Vector2(0, 1)
+            self.ball.v -= (2 * self.ball.v.dot(collisionVector) / collisionVector.magnitude_squared()) * collisionVector
         if self.ball.p.x - self.ball.radius <= 0:
             isCollided = True
+            self.ball.p.x = self.ball.radius
             collisionVector = pygame.math.Vector2(1, 0)
+            self.ball.v -= (2 * self.ball.v.dot(collisionVector) / collisionVector.magnitude_squared()) * collisionVector
         if self.ball.p.x + self.ball.radius >= config.WIDTH:
             isCollided = True
+            self.ball.p.x = config.WIDTH - self.ball.radius
             collisionVector = pygame.math.Vector2(-1, 0)
-            
+            self.ball.v -= (2 * self.ball.v.dot(collisionVector) / collisionVector.magnitude_squared()) * collisionVector
+
         if self.ball.p.y + self.ball.radius >= config.HEIGHT and config.ENABLE_CHEAT:
             isCollided = True
+            self.ball.p.y = config.HEIGHT - self.ball.radius
             collisionVector = pygame.math.Vector2(0, -1)
-
-        if isCollided:
             self.ball.v -= (2 * self.ball.v.dot(collisionVector) / collisionVector.magnitude_squared()) * collisionVector
-            return True
-        else: 
-            return False
+
+        return isCollided
 
     def update(self, dt):
         if (self.state == GameManager.WAIT):
@@ -100,4 +104,3 @@ class GameManager:
                             if piece.hp <= 0:
                                 self.point += piece.point
                                 self.pieces.remove(piece)
-                            break

@@ -20,3 +20,4 @@ class Ball:
 
     def update(self, dt):
         self.p += self.v * dt / 1000
+        
