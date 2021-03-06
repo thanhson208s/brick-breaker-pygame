@@ -73,6 +73,10 @@ def processMenuScene():
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_ESCAPE:
                 running = False
+            elif event.key == pygame.K_SPACE:
+                curScene = constants.GAME_SCENE
+                soundManager.playSceneTransitionEffect()
+                gameManager.initGame()
             elif event.key >= pygame.K_0 and event.key <= pygame.K_9:
                 curScene = constants.GAME_SCENE
                 soundManager.playSceneTransitionEffect()
@@ -211,7 +215,6 @@ def processControlScene():
     screen.blit(label, (config.WIDTH/2 - label.get_width()/2, config.TITLE_Y + 330))
     label = button_font.render("    S  toggle sfx  ", False, constants.WHITE)
     screen.blit(label, (config.WIDTH/2 - label.get_width()/2, config.TITLE_Y + 360))
-
 # === Control Scene === #
 
 # === main loop === #
