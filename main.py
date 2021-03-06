@@ -15,8 +15,8 @@ gameManager = GameManager()
 
 screen = pygame.display.set_mode(config.SIZE)
 fps_font = pygame.font.SysFont("monospace", 12)
-button_font = pygame.font.SysFont("monospace", 20)
-title_font = pygame.font.SysFont('baby blocks', 48, True)
+button_font = pygame.font.SysFont("monospace", 20, True)
+title_font = pygame.font.SysFont('baby blocks', 48)
 background = pygame.transform.scale(pygame.image.load('res/bg.jpg'), config.SIZE) 
 # === GLOBAL OBJECTS === #
 
