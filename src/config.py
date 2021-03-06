@@ -3,7 +3,7 @@ SIZE = WIDTH, HEIGHT = 800, 600
 BTN_SIZE_LARGE = 120, 50 
 BTN_SIZE_SMALL = 60, 60
 
-TITLE_Y = 100
+TITLE_Y = 80
 BTN_START_Y = HEIGHT - 250
 BTN_RANK_Y = HEIGHT - 170
 BTN_QUIT_Y = HEIGHT - 90
@@ -29,3 +29,6 @@ ENABLE_AUTO = True
 
 MAP_FOLDER = '/Users/lap14008/Programming/Game Programming/pygame/res/maps/'
 DEFAULT_MAP = '/Users/lap14008/Programming/Game Programming/pygame/res/map.json'
+
+VERSION = "1.0"
+AUTHOR = "Son Bui"

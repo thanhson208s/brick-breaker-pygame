@@ -16,7 +16,7 @@ gameManager = GameManager()
 screen = pygame.display.set_mode(config.SIZE)
 fps_font = pygame.font.SysFont("monospace", 12)
 button_font = pygame.font.SysFont("monospace", 20)
-title_font = pygame.font.SysFont('Arial', 80)
+title_font = pygame.font.SysFont('baby blocks', 48, True)
 background = pygame.transform.scale(pygame.image.load('res/bg.jpg'), config.SIZE) 
 # === GLOBAL OBJECTS === #
 
@@ -75,11 +75,14 @@ def processMenuScene():
 
     # 3. update GUI
     # draw title
-    label_title = title_font.render("BRICK BREAKER", True, constants.WHITE)
+    label_title = title_font.render("BRICK BREAKER", False, constants.WHITE)
     screen.blit(label_title, (config.WIDTH/2 - label_title.get_width()/2, config.TITLE_Y))
 
-    label_author = button_font.render("Created by Son Bui with pygame.", True, constants.WHITE)
-    screen.blit(label_author, (config.WIDTH/2 - label_author.get_width()/2, config.TITLE_Y + 100))
+    label_author = button_font.render("Created by " + config.AUTHOR + " with pygame.", False, constants.WHITE)
+    screen.blit(label_author, (config.WIDTH/2 - label_author.get_width()/2, config.TITLE_Y + 120))
+
+    label_version = button_font.render("Version " + config.VERSION, False, constants.WHITE)
+    screen.blit(label_version, (config.WIDTH/2 - label_version.get_width()/2, config.TITLE_Y + 150))
 
     # draw menu
     drawMenuButton("START", (config.WIDTH/2, config.BTN_START_Y))
