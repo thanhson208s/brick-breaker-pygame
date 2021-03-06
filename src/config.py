@@ -5,7 +5,7 @@ BTN_SIZE_SMALL = 60, 60
 
 TITLE_Y = 80
 BTN_START_Y = HEIGHT - 250
-BTN_RANK_Y = HEIGHT - 170
+BTN_CONTROL_Y = HEIGHT - 170
 BTN_QUIT_Y = HEIGHT - 90
 
 ## Game balance
@@ -26,6 +26,8 @@ POINT_PER_HP = 5
 
 ENABLE_CHEAT = False
 ENABLE_AUTO = False
+ENABLE_SFX = True
+ENABLE_MUSIC = False
 
 MAP_FOLDER = '/Users/lap14008/Programming/Game Programming/pygame/res/maps/'
 DEFAULT_MAP = '/Users/lap14008/Programming/Game Programming/pygame/res/map.json'

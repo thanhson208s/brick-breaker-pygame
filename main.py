@@ -1,23 +1,29 @@
-import sys, pygame, math
+# TODO:
+# 1. new collision logic that can handle multiple collision with pieces
+# 2. upgrade: buffs, debuffs, more kinds of brick, timer, save score, acceleration
+
+import sys, pygame, math, subprocess
 
 sys.path.insert(1, 'src/')
-import constants, config, utility
+import constants, config
 from gamedata import *
 from ball import *
 from bar import *
 from piece import *
+from sound import *
 
 pygame.init()
 
 # === GLOBAL OBJECTS === #
 clock = pygame.time.Clock()
 gameManager = GameManager()
+soundManager = SoundManager.instance()
 
 screen = pygame.display.set_mode(config.SIZE)
 fps_font = pygame.font.SysFont("monospace", 12)
 button_font = pygame.font.SysFont("monospace", 20, True)
 title_font = pygame.font.SysFont('baby blocks', 48)
-background = pygame.transform.scale(pygame.image.load('res/bg.jpg'), config.SIZE) 
+background = pygame.transform.scale(pygame.image.load('res/bg.jpg'), config.SIZE)
 # === GLOBAL OBJECTS === #
 
 # === Init all global data === #
@@ -56,20 +62,36 @@ def processMenuScene():
             mouse = pygame.mouse.get_pos()
             if mouse[0] >= config.WIDTH/2 - config.BTN_SIZE_LARGE[0]/2 and mouse[0] <= config.WIDTH/2 + config.BTN_SIZE_LARGE[0]/2:
                 if mouse[1] >= config.BTN_START_Y - config.BTN_SIZE_LARGE[1]/2 and mouse[1] <= config.BTN_START_Y + config.BTN_SIZE_LARGE[1]/2:
-                    print('Button start pressed')
                     curScene = constants.GAME_SCENE
+                    soundManager.playSceneTransitionEffect()
                     gameManager.initGame()
-                elif mouse[1] >= config.BTN_RANK_Y - config.BTN_SIZE_LARGE[1]/2 and mouse[1] <= config.BTN_RANK_Y + config.BTN_SIZE_LARGE[1]/2:
-                    print('Button rank pressed')
+                elif mouse[1] >= config.BTN_CONTROL_Y - config.BTN_SIZE_LARGE[1]/2 and mouse[1] <= config.BTN_CONTROL_Y + config.BTN_SIZE_LARGE[1]/2:
+                    curScene = constants.CONTROL_SCENE
+                    soundManager.playSceneTransitionEffect()
                 elif mouse[1] >= config.BTN_QUIT_Y - config.BTN_SIZE_LARGE[1]/2 and mouse[1] <= config.BTN_QUIT_Y + config.BTN_SIZE_LARGE[1]/2:
-                    print('Button quit pressed')
                     running = False
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_ESCAPE:
                 running = False
             elif event.key >= pygame.K_0 and event.key <= pygame.K_9:
                 curScene = constants.GAME_SCENE
+                soundManager.playSceneTransitionEffect()
                 gameManager.initGame(event.key - pygame.K_0)
+            elif event.key == pygame.K_a:
+                config.ENABLE_AUTO = not config.ENABLE_AUTO
+                mess = "Toggle auto: " + str(config.ENABLE_AUTO)
+                subprocess.call("osascript -e '{}'".format("display dialog \"" + mess + "\" with title \"Message\" buttons {\"OK\"}"), shell=True)
+            elif event.key == pygame.K_m:
+                config.ENABLE_MUSIC = not config.ENABLE_MUSIC
+                soundManager.onToggleMusic()
+            elif event.key == pygame.K_c:
+                config.ENABLE_CHEAT = not config.ENABLE_CHEAT
+                mess = "Toggle cheat: " + str(config.ENABLE_CHEAT)
+                subprocess.call("osascript -e '{}'".format("display dialog \"" + mess + "\" with title \"Message\" buttons {\"OK\"}"), shell=True)
+            elif event.key == pygame.K_s:
+                config.ENABLE_SFX = not config.ENABLE_SFX
+                mess = "Toggle sfx: " + str(config.ENABLE_SFX)
+                subprocess.call("osascript -e '{}'".format("display dialog \"" + mess + "\" with title \"Message\" buttons {\"OK\"}"), shell=True)
     # 2. process data
     # nothing to process
 
@@ -86,9 +108,8 @@ def processMenuScene():
 
     # draw menu
     drawMenuButton("START", (config.WIDTH/2, config.BTN_START_Y))
-    drawMenuButton("RANK", (config.WIDTH/2, config.BTN_RANK_Y))
-    drawMenuButton("QUIT", (config.WIDTH/2, config.BTN_QUIT_Y))
-    
+    drawMenuButton("CONTROL", (config.WIDTH/2, config.BTN_CONTROL_Y))
+    drawMenuButton("QUIT", (config.WIDTH/2, config.BTN_QUIT_Y)) 
 # === Menu Scene === #
 
 # === Game Scene === #
@@ -118,7 +139,6 @@ def drawGameOver(point):
     label_note = fps_font.render("Press ESC to exit to menu or SPACE to restart level!", False, constants.WHITE)
     screen.blit(label_note, (config.WIDTH/2 - label_note.get_width()/2, config.HEIGHT*3/4 - label_note.get_height()/2))
 
-
 def processGameScene():
     global running, curScene
 
@@ -134,9 +154,11 @@ def processGameScene():
                 gameManager.onControlEnd(event.key)
             elif event.key == pygame.K_SPACE:
                 gameManager.startGame()
+                soundManager.playCollideWithBarEffect()
             elif event.key == pygame.K_ESCAPE:
                 gameManager.endGame()
                 curScene = constants.MENU_SCENE
+                soundManager.playSceneTransitionEffect()
 
     # 2. process data
     gameManager.update(clock.get_time())
@@ -151,11 +173,50 @@ def processGameScene():
         drawBar(gameManager.bar)
         drawBall(gameManager.ball)
         drawGameOver(gameManager.point)
-
 # === Game Scene === #
+
+# === Control Scene === #
+def processControlScene():
+    global running, curScene
+
+    # 1.hanle events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False #this loop is the last
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_ESCAPE:
+                curScene = constants.MENU_SCENE
+                soundManager.playSceneTransitionEffect()
+    # 2. process data
+    # nothing to process
+
+    # 3. update GUI
+    # draw instruction
+    label_title = title_font.render("CONTROLS", False, constants.WHITE)
+    screen.blit(label_title, (config.WIDTH/2 - label_title.get_width()/2, config.TITLE_Y))
+
+    label = button_font.render("SPACE  start game  ", False, constants.WHITE)
+    screen.blit(label, (config.WIDTH/2 - label.get_width()/2, config.TITLE_Y + 150))
+    label = button_font.render("   ->  move left   ", False, constants.WHITE)
+    screen.blit(label, (config.WIDTH/2 - label.get_width()/2, config.TITLE_Y + 180))
+    label = button_font.render("   <-  move right  ", False, constants.WHITE)
+    screen.blit(label, (config.WIDTH/2 - label.get_width()/2, config.TITLE_Y + 210))
+    label = button_font.render("  ESC  exit game   ", False, constants.WHITE)
+    screen.blit(label, (config.WIDTH/2 - label.get_width()/2, config.TITLE_Y + 240))
+    label = button_font.render("    M  toggle music", False, constants.WHITE)
+    screen.blit(label, (config.WIDTH/2 - label.get_width()/2, config.TITLE_Y + 270))
+    label = button_font.render("    A  toggle auto ", False, constants.WHITE)
+    screen.blit(label, (config.WIDTH/2 - label.get_width()/2, config.TITLE_Y + 300))
+    label = button_font.render("    C  toggle cheat", False, constants.WHITE)
+    screen.blit(label, (config.WIDTH/2 - label.get_width()/2, config.TITLE_Y + 330))
+    label = button_font.render("    S  toggle sfx  ", False, constants.WHITE)
+    screen.blit(label, (config.WIDTH/2 - label.get_width()/2, config.TITLE_Y + 360))
+
+# === Control Scene === #
 
 # === main loop === #
 print('Game has started!')
+soundManager.playTheme()
 while running:
     clock.tick(60)
     screen.fill(constants.BLACK)
@@ -163,8 +224,10 @@ while running:
 
     if (curScene == constants.MENU_SCENE):
         processMenuScene()
-    if (curScene == constants.GAME_SCENE):
+    elif (curScene == constants.GAME_SCENE):
         processGameScene()
-    
+    elif (curScene == constants.CONTROL_SCENE):
+        processControlScene()
+
     showFps()
     pygame.display.flip()

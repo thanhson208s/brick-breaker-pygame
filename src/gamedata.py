@@ -1,7 +1,8 @@
 from ball import *
 from bar import *
 from piece import *
-import constants, config, utility
+from sound import *
+import constants, config
 import pygame, math, json
 
 class GameManager:
@@ -111,16 +112,23 @@ class GameManager:
                     # check collide with pieces
                     for piece in self.pieces:
                         if piece.isCollided(self.ball):
+                            SoundManager.instance().playCollideWithPieceEffect()
                             piece.hp -= 1
                             if piece.hp <= 0:
                                 self.point += piece.point
                                 self.pieces.remove(piece)
+                else:
+                    SoundManager.instance().playCollideWithBarEffect()
+            else:
+                SoundManager.instance().playCollideWithBorderEffect()
             #check win - lose
             if len(self.pieces) == 0:
                 self.state = GameManager.WIN
+                SoundManager.instance().playWinEffect()
             else:
                 if self.ball.p.y - self.ball.radius > config.HEIGHT:
                     self.state = GameManager.LOSE
+                    SoundManager.instance().playLoseEffect()
         elif self.state == GameManager.WIN:
             self.ball.update(dt)
             if not self.checkCollideWithBorder():

@@ -1,4 +1,4 @@
-import config, constants, utility
+import config, constants
 import pygame, math, random
 
 class Bar:
@@ -77,7 +77,7 @@ class Bar:
                 return
         
         self.p += self.v * (dt / 1000)
-        if self.p.x - (self.length/2 + config.BALL_RADIUS * 2) < 0:
-            self.p.x = self.length/2 + config.BALL_RADIUS * 2
-        if self.p.x + (self.length/2 + config.BALL_RADIUS * 2) > config.WIDTH:
-            self.p.x = config.WIDTH - (self.length/2 + config.BALL_RADIUS * 2)
+        if self.p.x - (self.length/2 + config.BALL_RADIUS) < 0:
+            self.p.x = self.length/2 + config.BALL_RADIUS
+        if self.p.x + (self.length/2 + config.BALL_RADIUS) > config.WIDTH:
+            self.p.x = config.WIDTH - (self.length/2 + config.BALL_RADIUS)

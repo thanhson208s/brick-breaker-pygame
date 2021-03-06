@@ -1,4 +1,4 @@
-import config, constants, utility
+import config, constants
 import pygame, math
 
 class Ball: 
