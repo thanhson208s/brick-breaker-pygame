@@ -1,8 +1,4 @@
-# TODO:
-# 1. new collision logic that can handle multiple collision with pieces
-# 2. upgrade: buffs, debuffs, more kinds of brick, timer, save score, acceleration
-
-import sys, pygame, math, subprocess
+import sys, pygame, math, subprocess, time
 
 sys.path.insert(1, 'src/')
 import constants, config
@@ -36,6 +32,11 @@ def showFps():
     label_fps = fps_font.render("fps: " + "%.2f"%fps, False, constants.WHITE)
     screen.blit(label_fps, (10, config.HEIGHT - 20))
 
+def switchScene(scene):
+    global curScene
+    curScene = scene
+    soundManager.playSceneTransitionEffect()
+
 # === Menu Scene === #
 def drawMenuButton(text, p):
     btn_color = constants.GRAY
@@ -62,24 +63,22 @@ def processMenuScene():
             mouse = pygame.mouse.get_pos()
             if mouse[0] >= config.WIDTH/2 - config.BTN_SIZE_LARGE[0]/2 and mouse[0] <= config.WIDTH/2 + config.BTN_SIZE_LARGE[0]/2:
                 if mouse[1] >= config.BTN_START_Y - config.BTN_SIZE_LARGE[1]/2 and mouse[1] <= config.BTN_START_Y + config.BTN_SIZE_LARGE[1]/2:
-                    curScene = constants.GAME_SCENE
-                    soundManager.playSceneTransitionEffect()
+                    switchScene(constants.GAME_SCENE)
                     gameManager.initGame()
                 elif mouse[1] >= config.BTN_CONTROL_Y - config.BTN_SIZE_LARGE[1]/2 and mouse[1] <= config.BTN_CONTROL_Y + config.BTN_SIZE_LARGE[1]/2:
-                    curScene = constants.CONTROL_SCENE
-                    soundManager.playSceneTransitionEffect()
+                    switchScene(constants.CONTROL_SCENE)
                 elif mouse[1] >= config.BTN_QUIT_Y - config.BTN_SIZE_LARGE[1]/2 and mouse[1] <= config.BTN_QUIT_Y + config.BTN_SIZE_LARGE[1]/2:
                     running = False
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_ESCAPE:
                 running = False
             elif event.key == pygame.K_SPACE:
-                curScene = constants.GAME_SCENE
-                soundManager.playSceneTransitionEffect()
+                switchScene(constants.GAME_SCENE)
                 gameManager.initGame()
+            elif event.key == pygame.K_TAB:
+                switchScene(constants.CONTROL_SCENE)
             elif event.key >= pygame.K_0 and event.key <= pygame.K_9:
-                curScene = constants.GAME_SCENE
-                soundManager.playSceneTransitionEffect()
+                switchScene(constants.GAME_SCENE)
                 gameManager.initGame(event.key - pygame.K_0)
             elif event.key == pygame.K_a:
                 config.ENABLE_AUTO = not config.ENABLE_AUTO
@@ -133,6 +132,13 @@ def drawPoint(point):
     label_point = fps_font.render("Point: " + str(point), False, constants.WHITE)
     screen.blit(label_point, (config.WIDTH - 10 - label_point.get_width(), config.HEIGHT - 20))
 
+def drawTime(remainTime):
+    s = math.ceil(remainTime / 1000)
+    m = math.floor(s / 60)
+    s = s - m * 60
+    label_time = fps_font.render((("" if m >= 10 else "0") + str(m)) + ":" + (("" if s >= 10 else "0") + str(s)), False, constants.WHITE)
+    screen.blit(label_time, (config.WIDTH/2 - label_time.get_width()/2, config.HEIGHT - 20))
+
 def drawGameOver(point):
     label_game_over = title_font.render('GAME OVER', False, constants.WHITE)
     screen.blit(label_game_over, (config.WIDTH/2 - label_game_over.get_width()/2, config.TITLE_Y))
@@ -157,22 +163,23 @@ def processGameScene():
             if (event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT):
                 gameManager.onControlEnd(event.key)
             elif event.key == pygame.K_SPACE:
-                gameManager.startGame()
-                soundManager.playCollideWithBarEffect()
+                gameManager.onSpace()
             elif event.key == pygame.K_ESCAPE:
                 gameManager.endGame()
-                curScene = constants.MENU_SCENE
-                soundManager.playSceneTransitionEffect()
+                switchScene(constants.MENU_SCENE)
+            elif event.key == pygame.K_TAB:
+                gameManager.pauseGame()
 
     # 2. process data
     gameManager.update(clock.get_time())
 
     # 3. update GUI
-    if gameManager.state in [GameManager.READY, GameManager.RUN]:
+    if gameManager.state in [GameManager.READY, GameManager.RUN, GameManager.PAUSE]:
         drawBar(gameManager.bar)
         drawBall(gameManager.ball)
         drawPieces(gameManager.pieces)
         drawPoint(gameManager.point)
+        drawTime(gameManager.remainTime)
     elif gameManager.state == GameManager.WIN or gameManager.state == GameManager.LOSE:
         drawBar(gameManager.bar)
         drawBall(gameManager.ball)
@@ -188,9 +195,8 @@ def processControlScene():
         if event.type == pygame.QUIT:
             running = False #this loop is the last
         elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_ESCAPE:
-                curScene = constants.MENU_SCENE
-                soundManager.playSceneTransitionEffect()
+            if event.key in [pygame.K_ESCAPE, pygame.K_TAB]:
+                switchScene(constants.MENU_SCENE)
     # 2. process data
     # nothing to process
 
@@ -215,13 +221,15 @@ def processControlScene():
     screen.blit(label, (config.WIDTH/2 - label.get_width()/2, config.TITLE_Y + 330))
     label = button_font.render("    S  toggle sfx  ", False, constants.WHITE)
     screen.blit(label, (config.WIDTH/2 - label.get_width()/2, config.TITLE_Y + 360))
+    label = button_font.render("  TAB  pause game  ", False, constants.WHITE)
+    screen.blit(label, (config.WIDTH/2 - label.get_width()/2, config.TITLE_Y + 390))
 # === Control Scene === #
 
 # === main loop === #
 print('Game has started!')
 soundManager.playTheme()
 while running:
-    clock.tick(60)
+    clock.tick(120)
     screen.fill(constants.BLACK)
     screen.blit(background, (0, 0))
 
@@ -234,3 +242,5 @@ while running:
 
     showFps()
     pygame.display.flip()
+
+print('Game has stopped!')

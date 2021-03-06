@@ -11,10 +11,12 @@ class SoundManager:
     LOSE_PATH = "res/lose.wav"
 
     def __init__(self):
-        self.theme_music = pygame.mixer.Sound(SoundManager.THEME_PATH)
+        pygame.mixer.music.load(SoundManager.THEME_PATH)
+        pygame.mixer.music.set_volume(0.5)
         self.bounce_effect = pygame.mixer.Sound(SoundManager.BOUNCE_PATH)
         self.break_effect = pygame.mixer.Sound(SoundManager.BREAK_PATH)
         self.hit_wall_effect = pygame.mixer.Sound(SoundManager.HIT_WALL_PATH)
+        self.hit_wall_effect.set_volume(0.5)
         self.scene_trans_effect = pygame.mixer.Sound(SoundManager.SCENE_TRANS_PATH)
         self.win_effect = pygame.mixer.Sound(SoundManager.WIN_PATH)
         self.lose_effect = pygame.mixer.Sound(SoundManager.LOSE_PATH)
@@ -26,13 +28,13 @@ class SoundManager:
 
     def onToggleMusic(self):
         if config.ENABLE_MUSIC:
-            self.theme_music.play(-1)
+            pygame.mixer.music.play(-1)
         else:
-            self.theme_music.stop()
+            pygame.mixer.music.stop()
 
     def playTheme(self):
         if config.ENABLE_MUSIC:
-            self.theme_music.play()
+            pygame.mixer.music.play(-1)
 
     def playCollideWithBorderEffect(self):
         if config.ENABLE_SFX:

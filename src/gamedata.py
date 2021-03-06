@@ -11,6 +11,7 @@ class GameManager:
     RUN = 1
     WIN = 100
     LOSE = -100
+    PAUSE = 2
 
     def __init__(self):
         self.state = GameManager.WAIT
@@ -18,6 +19,8 @@ class GameManager:
         self.bar = Bar(self)
         self.pieces = None
         self.point = None
+        self.pointTimer = None
+        self.remainTime = None
 
     def initGame(self, mapIndex=-1):
         self.state = GameManager.READY
@@ -26,6 +29,8 @@ class GameManager:
         self.ball.initGame()
         self.initPieces()
         self.point = 0
+        self.pointTimer = 0
+        self.remainTime = config.TOTAL_TIME * 1000
 
     def initPieces(self):
         path = (config.MAP_FOLDER + str(self.mapIndex) + '.json') if self.mapIndex >= 0 else config.DEFAULT_MAP 
@@ -45,15 +50,25 @@ class GameManager:
                 self.pieces.append(CirclePiece(item['center'], item['radius'], item['hp']))
 
     def startGame(self):
-        if (self.state == GameManager.READY):
+        self.state = GameManager.RUN
+        self.ball.startGame()
+        SoundManager.instance().playCollideWithBarEffect()
+
+    def pauseGame(self):
+        if self.state == GameManager.RUN:
+            self.state = GameManager.PAUSE
+        elif self.state == GameManager.PAUSE:
             self.state = GameManager.RUN
-            self.ball.startGame()
-        elif self.state in [GameManager.WIN, GameManager.LOSE]:
-            self.state = GameManager.READY
-            self.initGame(self.mapIndex)
 
     def endGame(self):
         self.state = GameManager.WAIT
+
+    def onSpace(self):
+        if (self.state == GameManager.READY):
+            self.startGame()
+        elif self.state in [GameManager.WIN, GameManager.LOSE]:
+            self.initGame(self.mapIndex)
+        
 
     def onControlStart(self, key):
         if (self.state == GameManager.WAIT):
@@ -97,13 +112,18 @@ class GameManager:
         return isCollided
 
     def update(self, dt):
-        if (self.state == GameManager.WAIT):
+        if self.state in [GameManager.WAIT, GameManager.PAUSE]:
             return
 
         self.bar.update(dt)
         if self.state == GameManager.READY:
             self.ball.updateInitPosition(self.bar)
         elif self.state == GameManager.RUN:
+            self.pointTimer += dt / 1000
+            if self.pointTimer >= config.POINT_DECREASE_PERIOD:
+                self.pointTimer -= config.POINT_DECREASE_PERIOD
+                self.point = max(self.point - config.POINT_DECREASE_VALUE, 0)
+            
             self.ball.update(dt)
             # check collied with border
             if not self.checkCollideWithBorder():
@@ -122,11 +142,12 @@ class GameManager:
             else:
                 SoundManager.instance().playCollideWithBorderEffect()
             #check win - lose
+            self.remainTime = max(0, self.remainTime - dt)
             if len(self.pieces) == 0:
                 self.state = GameManager.WIN
                 SoundManager.instance().playWinEffect()
             else:
-                if self.ball.p.y - self.ball.radius > config.HEIGHT:
+                if self.ball.p.y - self.ball.radius > config.HEIGHT or self.remainTime <= 0:
                     self.state = GameManager.LOSE
                     SoundManager.instance().playLoseEffect()
         elif self.state == GameManager.WIN:
@@ -134,7 +155,9 @@ class GameManager:
             if not self.checkCollideWithBorder():
                 self.bar.checkCollide(self.ball)
         elif self.state == GameManager.LOSE:
-            pass
+            self.ball.update(dt)
+            if not self.checkCollideWithBorder():
+                self.bar.checkCollide(self.ball)
 
     def isRunning(self):
         return self.state == GameManager.RUN     

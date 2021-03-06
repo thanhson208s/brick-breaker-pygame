@@ -16,6 +16,14 @@ class Piece:
         #else return False
         pass
 
+    def quickCheckCollide(self, ball):
+        if (ball.p.x < self.box[0] - ball.radius) \
+            or (ball.p.x > self.box[0] + self.box[2] + ball.radius) \
+            or (ball.p.y < self.box[1] - ball.radius) \
+            or (ball.p.y > self.box[1] + self.box[3] + ball.radius):
+            return False
+        return True
+
 class RectanglePiece(Piece):
     def __init__(self, rect, hp=1):
         super().__init__(hp)
@@ -27,37 +35,48 @@ class RectanglePiece(Piece):
         self.box = rect
 
     def isCollided(self, ball):
+        if not self.quickCheckCollide(ball):
+            return False
+
         isCollided = False
         if ball.p.x >= self.x + self.w:
             if ball.p.y > self.y and ball.p.y < self.y + self.h:
                 if ball.p.x <= self.x + self.w + ball.radius:
                     isCollided = True
                     collisionVector = pygame.math.Vector2(1, 0)
+                    ball.p.x = self.x + self.w + ball.radius
             else:
                 vert = pygame.math.Vector2(self.x + self.w, self.y if ball.p.y <= self.y else (self.y + self.h))
                 if (ball.p - vert).magnitude() <= ball.radius:
                     isCollided = True
                     collisionVector = ball.p - vert
+                    ball.p = vert + collisionVector.normalize() * ball.radius
         elif ball.p.x <= self.x:
             if ball.p.y > self.y and ball.p.y < self.y + self.h:
                 if ball.p.x >= self.x - ball.radius:
                     isCollided = True
                     collisionVector = pygame.math.Vector2(-1, 0)
+                    ball.p.x = self.x - ball.radius
             else:
                 vert = pygame.math.Vector2(self.x, self.y if ball.p.y <= self.y else (self.y + self.h))
                 if (ball.p - vert).magnitude() <= ball.radius:
                     isCollided = True
                     collisionVector = ball.p - vert
+                    ball.p = vert + collisionVector.normalize() * ball.radius
         else:
             if ball.p.y < self.y and ball.p.y >= self.y - ball.radius:
                 isCollided = True
                 collisionVector = pygame.math.Vector2(0, -1)
+                ball.p.y = self.y - ball.radius
             elif ball.p.y > self.y + self.h and ball.p.y <= self.y + self.h + ball.radius:
                 isCollided = True
                 collisionVector = pygame.math.Vector2(0, 1)
+                ball.p.y = self.y + self.h + ball.radius
 
         if isCollided:
-            ball.v -= (2 * ball.v.dot(collisionVector) / collisionVector.magnitude_squared()) * collisionVector
+            temp = (ball.v.dot(collisionVector) / collisionVector.magnitude_squared()) * collisionVector
+            if temp.dot(collisionVector) < 0:
+                ball.v -= 2 * temp
             return True
         else: 
             return False
@@ -78,6 +97,9 @@ class TrianglePiece(Piece):
         self.box = (minX, minY, max([v[0] for v in vertices]) - minX, max([v[1] for v in vertices]) - minY)
 
     def isCollided(self, ball):
+        if not self.quickCheckCollide(ball):
+            return False
+        
         isCollided = False
         for i in range(3):
             p0 = self.vertices[i]
@@ -85,6 +107,8 @@ class TrianglePiece(Piece):
             p2 = self.vertices[(i + 2) % 3]
             parVector = p0 - p1
             perVector = pygame.math.Vector2(-parVector.y, parVector.x)
+            if perVector.dot(ball.p - p2) < 0:
+                perVector = perVector * (-1)
             if (p0 - p2).dot(perVector) * (p0 - ball.p).dot(perVector) < 0:
                 if (p1 - p0).dot(ball.p - p0) <= 0:
                     dist = (ball.p - p0).magnitude()
@@ -105,7 +129,9 @@ class TrianglePiece(Piece):
                 break
 
         if isCollided:
-            ball.v -= (2 * ball.v.dot(collisionVector) / collisionVector.magnitude_squared()) * collisionVector
+            temp = (ball.v.dot(collisionVector) / collisionVector.magnitude_squared()) * collisionVector
+            if temp.dot(collisionVector) < 0:
+                ball.v -= 2 * temp
             return True
         else: 
             return False
@@ -126,7 +152,10 @@ class CirclePiece(Piece):
     def isCollided(self, ball):
         if (self.center - ball.p).magnitude() <= self.radius + ball.radius:
             collisionVector = ball.p - self.center
-            ball.v -= (2 * ball.v.dot(collisionVector) / collisionVector.magnitude_squared()) * collisionVector
+            ball.p = self.center + collisionVector.normalize() * (self.radius + ball.radius)
+            temp = (ball.v.dot(collisionVector) / collisionVector.magnitude_squared()) * collisionVector
+            if temp.dot(collisionVector) < 0:
+                ball.v -= 2 * temp
             return True
         return False
 

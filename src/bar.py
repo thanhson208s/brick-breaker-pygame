@@ -18,10 +18,12 @@ class Bar:
         self.controlBuffer = []
 
     def onControlStart(self, key):
-        self.controlBuffer.append(key)
+        if key not in self.controlBuffer:
+            self.controlBuffer.append(key)
 
     def onControlEnd(self, key):
-        self.controlBuffer.remove(key)
+        if key in self.controlBuffer:
+            self.controlBuffer.remove(key)
 
     def checkCollide(self, ball):
         offset = (ball.p.y - self.p.y) / abs(ball.p.y - self.p.y) if ball.p.y != self.p.y else 0
@@ -34,6 +36,7 @@ class Bar:
                 rate = (self.p.x - ball.p.x) / (self.length / 2)
                 angle = (math.pi/2 + math.pi/3 * rate) * offset
                 ball.v = pygame.math.Vector2(math.cos(angle), math.sin(angle)) * ball.v.magnitude()
+                ball.p.y = self.p.y + ball.radius * (ball.p.y - self.p.y) / abs(ball.p.y - self.p.y)
                 return True
             else:
                 return False
@@ -45,6 +48,7 @@ class Bar:
             rate = (abs(angle) - math.pi/2) / (math.pi/2)
             angle = (math.pi * 5/6 + math.pi * 1/6 * rate) * offset
             ball.v = pygame.math.Vector2(math.cos(angle), math.sin(angle)) * ball.v.magnitude()
+            ball.p = p_left + (ball.p - p_left).normalize() * ball.radius
             return True
 
         # check right point
