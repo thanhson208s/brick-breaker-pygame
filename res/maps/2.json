@@ -1,0 +1,44 @@
+[
+    {
+        "type": 2,
+        "center": [100, 100],
+        "radius": 30,
+        "hp": 2
+    },
+    {
+        "type": 2,
+        "center": [200, 100],
+        "radius": 30,
+        "hp": 2
+    },
+    {
+        "type": 2,
+        "center": [300, 100],
+        "radius": 30,
+        "hp": 2
+    },
+    {
+        "type": 2,
+        "center": [400, 100],
+        "radius": 30,
+        "hp": 2
+    },
+    {
+        "type": 2,
+        "center": [500, 100],
+        "radius": 30,
+        "hp": 2
+    },
+    {
+        "type": 2,
+        "center": [600, 100],
+        "radius": 30,
+        "hp": 2
+    },
+    {
+        "type": 2,
+        "center": [700, 100],
+        "radius": 30,
+        "hp": 2
+    }
+]

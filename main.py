@@ -64,14 +64,22 @@ def processMenuScene():
                 elif mouse[1] >= config.BTN_QUIT_Y - config.BTN_SIZE_LARGE[1]/2 and mouse[1] <= config.BTN_QUIT_Y + config.BTN_SIZE_LARGE[1]/2:
                     print('Button quit pressed')
                     running = False
-
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_ESCAPE:
+                running = False
+            elif event.key >= pygame.K_0 and event.key <= pygame.K_9:
+                curScene = constants.GAME_SCENE
+                gameManager.initGame(event.key - pygame.K_0)
     # 2. process data
     # nothing to process
 
     # 3. update GUI
     # draw title
-    label_title = title_font.render("B O U N C E", True, constants.WHITE)
+    label_title = title_font.render("BRICK BREAKER", True, constants.WHITE)
     screen.blit(label_title, (config.WIDTH/2 - label_title.get_width()/2, config.TITLE_Y))
+
+    label_author = button_font.render("Created by Son Bui with pygame.", True, constants.WHITE)
+    screen.blit(label_author, (config.WIDTH/2 - label_author.get_width()/2, config.TITLE_Y + 100))
 
     # draw menu
     drawMenuButton("START", (config.WIDTH/2, config.BTN_START_Y))
@@ -97,6 +105,17 @@ def drawPoint(point):
     label_point = fps_font.render("Point: " + str(point), False, constants.WHITE)
     screen.blit(label_point, (config.WIDTH - 10 - label_point.get_width(), config.HEIGHT - 20))
 
+def drawGameOver(point):
+    label_game_over = title_font.render('GAME OVER', False, constants.WHITE)
+    screen.blit(label_game_over, (config.WIDTH/2 - label_game_over.get_width()/2, config.TITLE_Y))
+    
+    label_point = button_font.render("Point: " + str(point), False, constants.WHITE)
+    screen.blit(label_point, (config.WIDTH/2 - label_point.get_width()/2, config.HEIGHT/2 - label_point.get_height()/2))
+
+    label_note = fps_font.render("Press ESC to exit to menu or SPACE to restart level!", False, constants.WHITE)
+    screen.blit(label_note, (config.WIDTH/2 - label_note.get_width()/2, config.HEIGHT*3/4 - label_note.get_height()/2))
+
+
 def processGameScene():
     global running, curScene
 
@@ -105,25 +124,30 @@ def processGameScene():
         if event.type == pygame.QUIT:
             running = False #this loop is the last
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT:
+            if (event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT):
                 gameManager.onControlStart(event.key)
         elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT:
+            if (event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT):
                 gameManager.onControlEnd(event.key)
             elif event.key == pygame.K_SPACE:
                 gameManager.startGame()
             elif event.key == pygame.K_ESCAPE:
-                pass
+                gameManager.endGame()
+                curScene = constants.MENU_SCENE
 
     # 2. process data
     gameManager.update(clock.get_time())
 
     # 3. update GUI
-    drawBar(gameManager.bar)
-    drawBall(gameManager.ball)
-    drawPieces(gameManager.pieces)
-    drawPoint(gameManager.point)
-    
+    if gameManager.state in [GameManager.READY, GameManager.RUN]:
+        drawBar(gameManager.bar)
+        drawBall(gameManager.ball)
+        drawPieces(gameManager.pieces)
+        drawPoint(gameManager.point)
+    elif gameManager.state == GameManager.WIN or gameManager.state == GameManager.LOSE:
+        drawBar(gameManager.bar)
+        drawBall(gameManager.ball)
+        drawGameOver(gameManager.point)
 
 # === Game Scene === #
 

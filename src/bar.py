@@ -1,13 +1,14 @@
 import config, constants, utility
-import pygame, math
+import pygame, math, random
 
 class Bar:
-    def __init__(self):
+    def __init__(self, gameManager):
         self.p = None
         self.v = None
         self.length = None
         self.speed = None
         self.controlBuffer = None
+        self.gameManager = gameManager
 
     def initGame(self):
         self.p = pygame.math.Vector2(config.WIDTH/2, config.BAR_Y)
@@ -59,14 +60,21 @@ class Bar:
 
 
     def update(self, dt):
-        if len(self.controlBuffer) > 0:
-            if self.controlBuffer[0] == pygame.K_LEFT:
-                self.v.x = -self.speed
-            else:
-                self.v.x = self.speed
+        if self.gameManager.isRunning() and config.ENABLE_AUTO:
+            temp = self.gameManager.ball.p.x - (self.p.x + (random.random() - 0.5) * self.length)
+            if temp != 0:
+                self.v.x = temp / abs(temp) * self.speed
+            else: 
+                self.v.x = 0
         else:
-            self.v.x = 0
-            return
+            if len(self.controlBuffer) > 0:
+                if self.controlBuffer[0] == pygame.K_LEFT:
+                    self.v.x = -self.speed
+                else:
+                    self.v.x = self.speed
+            else:
+                self.v.x = 0
+                return
         
         self.p += self.v * (dt / 1000)
         if self.p.x - (self.length/2 + config.BALL_RADIUS * 2) < 0:

@@ -2,10 +2,11 @@ import config, constants, utility
 import pygame, math
 
 class Ball: 
-    def __init__(self):
+    def __init__(self, gameManager):
         self.v = None
         self.radius = None
         self.p = None
+        self.gameManager = gameManager
 
     def initGame(self):
         self.radius = config.BALL_RADIUS

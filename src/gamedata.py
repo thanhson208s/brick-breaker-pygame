@@ -13,20 +13,25 @@ class GameManager:
 
     def __init__(self):
         self.state = GameManager.WAIT
-        self.ball = Ball()
-        self.bar = Bar()
+        self.ball = Ball(self)
+        self.bar = Bar(self)
         self.pieces = None
         self.point = None
 
-    def initGame(self):
+    def initGame(self, mapIndex=-1):
         self.state = GameManager.READY
+        self.mapIndex = mapIndex
         self.bar.initGame()
         self.ball.initGame()
         self.initPieces()
         self.point = 0
 
     def initPieces(self):
-        json_file = open('/Users/lap14008/Programming/Game Programming/pygame/res/map.json')
+        path = (config.MAP_FOLDER + str(self.mapIndex) + '.json') if self.mapIndex >= 0 else config.DEFAULT_MAP 
+        try:
+            json_file = open(path)
+        except:
+            json_file = open(config.DEFAULT_MAP)
         data = json.load(json_file)
         
         self.pieces = []
@@ -34,26 +39,32 @@ class GameManager:
             if item['type'] == Piece.RECTANGLE:
                 self.pieces.append(RectanglePiece(item['rect'], item['hp']))
             elif item['type'] == Piece.TRIANGLE:
-                self.pieces.append(TrianglePiece(item['vectices'], item['hp']))
+                self.pieces.append(TrianglePiece(item['vertices'], item['hp']))
             elif item['type'] == Piece.CIRCLE:
                 self.pieces.append(CirclePiece(item['center'], item['radius'], item['hp']))
 
     def startGame(self):
-        if (self.state != GameManager.READY):
-            return
-        self.state = GameManager.RUN
-        self.ball.startGame()
+        if (self.state == GameManager.READY):
+            self.state = GameManager.RUN
+            self.ball.startGame()
+        elif self.state in [GameManager.WIN, GameManager.LOSE]:
+            self.state = GameManager.READY
+            self.initGame(self.mapIndex)
 
     def endGame(self):
-        pass
+        self.state = GameManager.WAIT
 
     def onControlStart(self, key):
         if (self.state == GameManager.WAIT):
+            return
+        if (self.state == GameManager.RUN and config.ENABLE_AUTO):
             return
         self.bar.onControlStart(key)
     
     def onControlEnd(self, key):
         if (self.state == GameManager.WAIT):
+            return
+        if (self.state == GameManager.RUN and config.ENABLE_AUTO):
             return
         self.bar.onControlEnd(key)
 
@@ -76,7 +87,7 @@ class GameManager:
             collisionVector = pygame.math.Vector2(-1, 0)
             self.ball.v -= (2 * self.ball.v.dot(collisionVector) / collisionVector.magnitude_squared()) * collisionVector
 
-        if self.ball.p.y + self.ball.radius >= config.HEIGHT and config.ENABLE_CHEAT:
+        if self.ball.p.y + self.ball.radius >= config.HEIGHT and (config.ENABLE_CHEAT or self.state == GameManager.WIN):
             isCollided = True
             self.ball.p.y = config.HEIGHT - self.ball.radius
             collisionVector = pygame.math.Vector2(0, -1)
@@ -104,3 +115,18 @@ class GameManager:
                             if piece.hp <= 0:
                                 self.point += piece.point
                                 self.pieces.remove(piece)
+            #check win - lose
+            if len(self.pieces) == 0:
+                self.state = GameManager.WIN
+            else:
+                if self.ball.p.y - self.ball.radius > config.HEIGHT:
+                    self.state = GameManager.LOSE
+        elif self.state == GameManager.WIN:
+            self.ball.update(dt)
+            if not self.checkCollideWithBorder():
+                self.bar.checkCollide(self.ball)
+        elif self.state == GameManager.LOSE:
+            pass
+
+    def isRunning(self):
+        return self.state == GameManager.RUN     

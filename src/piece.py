@@ -78,12 +78,42 @@ class TrianglePiece(Piece):
         self.box = (minX, minY, max([v[0] for v in vertices]) - minX, max([v[1] for v in vertices]) - minY)
 
     def isCollided(self, ball):
-        return False
+        isCollided = False
+        for i in range(3):
+            p0 = self.vertices[i]
+            p1 = self.vertices[(i + 1) % 3]
+            p2 = self.vertices[(i + 2) % 3]
+            parVector = p0 - p1
+            perVector = pygame.math.Vector2(-parVector.y, parVector.x)
+            if (p0 - p2).dot(perVector) * (p0 - ball.p).dot(perVector) < 0:
+                if (p1 - p0).dot(ball.p - p0) <= 0:
+                    dist = (ball.p - p0).magnitude()
+                    if dist <= ball.radius:
+                        isCollided = True
+                        collisionVector = ball.p - p0
+                elif (p0 - p1).dot(ball.p - p1) <= 0:
+                    dist = (ball.p - p1).magnitude()
+                    if dist <= ball.radius:
+                        isCollided = True
+                        collisionVector = ball.p - p1
+                else:
+                    dist = (ball.p - p0).magnitude() * \
+                        math.sin(math.acos((p1 - p0).dot(ball.p - p0)/((p1 - p0).magnitude() * (ball.p - p0).magnitude())))
+                    if dist <= ball.radius:
+                        isCollided = True
+                        collisionVector = perVector
+                break
+
+        if isCollided:
+            ball.v -= (2 * ball.v.dot(collisionVector) / collisionVector.magnitude_squared()) * collisionVector
+            return True
+        else: 
+            return False
 
     def draw(self, screen):
         label_hp = self.font.render(str(self.hp), False, constants.WHITE)
         pygame.draw.polygon(screen, constants.WHITE, self.vertices, 2)
-        screen.blit(label_hp, sum(self.vertices, pygame.math.Vector2(0, 0)) / 3)
+        screen.blit(label_hp, sum(self.vertices, pygame.math.Vector2(0, 0)) / 3 - pygame.math.Vector2(label_hp.get_size())/2)
 
 class CirclePiece(Piece):
     def __init__(self, center, radius, hp):
