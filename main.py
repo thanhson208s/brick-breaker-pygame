@@ -25,6 +25,7 @@ background = pygame.transform.scale(pygame.image.load('res/bg.jpg'), config.SIZE
 # === Init all global data === #
 running = True
 curScene = constants.MENU_SCENE
+timer = 0
 # === Init all global data === #
 
 def showFps():
@@ -33,9 +34,12 @@ def showFps():
     screen.blit(label_fps, (10, config.HEIGHT - 20))
 
 def switchScene(scene):
-    global curScene
+    global curScene, timer
     curScene = scene
     soundManager.playSceneTransitionEffect()
+
+    if curScene == constants.GAME_SCENE:
+        timer = 0
 
 # === Menu Scene === #
 def drawMenuButton(text, p):
@@ -139,18 +143,30 @@ def drawTime(remainTime):
     label_time = fps_font.render((("" if m >= 10 else "0") + str(m)) + ":" + (("" if s >= 10 else "0") + str(s)), False, constants.WHITE)
     screen.blit(label_time, (config.WIDTH/2 - label_time.get_width()/2, config.HEIGHT - 20))
 
-def drawGameOver(point):
+def drawGameOver(point, state, isOutOfTime, isOutOfScreen):
     label_game_over = title_font.render('GAME OVER', False, constants.WHITE)
     screen.blit(label_game_over, (config.WIDTH/2 - label_game_over.get_width()/2, config.TITLE_Y))
     
     label_point = button_font.render("Point: " + str(point), False, constants.WHITE)
     screen.blit(label_point, (config.WIDTH/2 - label_point.get_width()/2, config.HEIGHT/2 - label_point.get_height()/2))
 
+    desc = ""
+    if state == GameManager.WIN:
+        desc = "You win!"
+    else:
+        desc = "You lose!"
+        if isOutOfTime:
+            desc += " Out of time."
+        if isOutOfScreen:
+            desc += " Out of screen."
+    label_desc = button_font.render(desc, False, constants.WHITE)
+    screen.blit(label_desc, (config.WIDTH/2 - label_desc.get_width()/2, config.HEIGHT * 1/4 - label_desc.get_height()/2))
+
     label_note = fps_font.render("Press ESC to exit to menu or SPACE to restart level!", False, constants.WHITE)
     screen.blit(label_note, (config.WIDTH/2 - label_note.get_width()/2, config.HEIGHT*3/4 - label_note.get_height()/2))
 
 def processGameScene():
-    global running, curScene
+    global running, curScene, timer
 
     # 1.hanle events
     for event in pygame.event.get():
@@ -171,7 +187,10 @@ def processGameScene():
                 gameManager.pauseGame()
 
     # 2. process data
-    gameManager.update(clock.get_time())
+    timer += clock.get_time()
+    while timer >= config.FRAME_TIME:
+        gameManager.update(config.FRAME_TIME)
+        timer -= config.FRAME_TIME
 
     # 3. update GUI
     if gameManager.state in [GameManager.READY, GameManager.RUN, GameManager.PAUSE]:
@@ -183,7 +202,7 @@ def processGameScene():
     elif gameManager.state == GameManager.WIN or gameManager.state == GameManager.LOSE:
         drawBar(gameManager.bar)
         drawBall(gameManager.ball)
-        drawGameOver(gameManager.point)
+        drawGameOver(gameManager.point, gameManager.state, gameManager.isOutOfTime(), gameManager.isOutOfScreen())
 # === Game Scene === #
 
 # === Control Scene === #

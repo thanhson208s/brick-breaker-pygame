@@ -160,4 +160,10 @@ class GameManager:
                 self.bar.checkCollide(self.ball)
 
     def isRunning(self):
-        return self.state == GameManager.RUN     
+        return self.state == GameManager.RUN
+
+    def isOutOfTime(self):
+        return self.remainTime <= 0
+
+    def isOutOfScreen(self):
+        return self.ball.p.y - self.ball.radius > config.HEIGHT
