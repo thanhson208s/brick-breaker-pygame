@@ -44,6 +44,13 @@ def switchScene(scene):
 
     if curScene == constants.GAME_SCENE:
         timer = 0
+
+def confirmQuitGame():
+    global running
+
+    confirmCode = subprocess.call("osascript -e '{}'".format('display dialog \"Stay with me senpai...\" with title \"Are you sure you want to quit?\"'), shell=True)
+    if confirmCode == 0:
+        running = False
 # === Utilities === #
 
 # === Menu Scene === #
@@ -77,10 +84,10 @@ def processMenuScene():
                 elif mouse[1] >= config.BTN_CONTROL_Y - config.BTN_SIZE_LARGE[1]/2 and mouse[1] <= config.BTN_CONTROL_Y + config.BTN_SIZE_LARGE[1]/2:
                     switchScene(constants.CONTROL_SCENE)
                 elif mouse[1] >= config.BTN_QUIT_Y - config.BTN_SIZE_LARGE[1]/2 and mouse[1] <= config.BTN_QUIT_Y + config.BTN_SIZE_LARGE[1]/2:
-                    running = False
+                    confirmQuitGame()
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_ESCAPE:
-                running = False
+                confirmQuitGame()
             elif event.key == pygame.K_SPACE:
                 switchScene(constants.GAME_SCENE)
                 gameManager.initGame()

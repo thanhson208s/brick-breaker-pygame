@@ -39,5 +39,5 @@ MAP_FOLDER = '/Users/lap14008/Programming/Game Programming/pygame/res/maps/'
 DEFAULT_MAP = '/Users/lap14008/Programming/Game Programming/pygame/res/map.json'
 
 ## Credit
-VERSION = "1.0"
+VERSION = "2.0"
 AUTHOR = "Son Bui"
