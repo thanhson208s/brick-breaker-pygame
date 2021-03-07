@@ -30,4 +30,3 @@ class Ball:
             speed = min(self.v.magnitude() + config.BALL_ACCELERATION_VALUE, config.BALL_MAX_SPEED)
             self.v = self.v.normalize() * speed
         self.p += self.v * dt / 1000
-        

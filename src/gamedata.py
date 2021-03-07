@@ -172,6 +172,7 @@ class GameManager:
                         SoundManager.instance().playLoseEffect()
                     else:
                         self.reviveGame()
+                        SoundManager.instance().playLoseLifeEffect()
                 elif self.remainTime <= 0:
                     self.state = GameManager.LOSE
                     SoundManager.instance().playLoseEffect()

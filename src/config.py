@@ -23,17 +23,21 @@ POINT_DECREASE_PERIOD = 1
 POINT_DECREASE_VALUE = 2
 
 POINT_PER_HP = 5
-TOTAL_TIME = 20
+TOTAL_TIME = 180
 FRAME_TIME = 10
-TOTAL_LIFE = 3
+TOTAL_LIFE = 5
 
+## Enable
 ENABLE_CHEAT = False
 ENABLE_AUTO = False
 ENABLE_SFX = True
 ENABLE_MUSIC = False
 
+
+## Path
 MAP_FOLDER = '/Users/lap14008/Programming/Game Programming/pygame/res/maps/'
 DEFAULT_MAP = '/Users/lap14008/Programming/Game Programming/pygame/res/map.json'
 
+## Credit
 VERSION = "1.0"
 AUTHOR = "Son Bui"

@@ -9,6 +9,7 @@ class SoundManager:
     SCENE_TRANS_PATH = "res/audio/scene_trans.wav"
     WIN_PATH = "res/audio/win.wav"
     LOSE_PATH = "res/audio/lose.wav"
+    LOSE_LIFE_PATH = "res/audio/lose_life.wav"
 
     def __init__(self):
         pygame.mixer.music.load(SoundManager.THEME_PATH)
@@ -20,6 +21,7 @@ class SoundManager:
         self.scene_trans_effect = pygame.mixer.Sound(SoundManager.SCENE_TRANS_PATH)
         self.win_effect = pygame.mixer.Sound(SoundManager.WIN_PATH)
         self.lose_effect = pygame.mixer.Sound(SoundManager.LOSE_PATH)
+        self.lose_life_effect = pygame.mixer.Sound(SoundManager.LOSE_LIFE_PATH)
 
     def instance():
         if SoundManager._instance is None:
@@ -59,3 +61,7 @@ class SoundManager:
     def playLoseEffect(self):
         if config.ENABLE_SFX:
             self.lose_effect.play()
+
+    def playLoseLifeEffect(self):
+        if config.ENABLE_SFX:
+            self.lose_life_effect.play()

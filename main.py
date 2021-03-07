@@ -28,6 +28,10 @@ curScene = constants.MENU_SCENE
 timer = 0
 # === Init all global data === #
 
+# === Utilities === #
+def showConfig():
+    pygame.display.set_caption('Brick Breaker (AUTO:' + str(config.ENABLE_AUTO) + "|CHEAT:" + str(config.ENABLE_CHEAT) + ")")
+
 def showFps():
     fps = clock.get_fps()
     label_fps = fps_font.render("fps: " + "%.2f"%fps, False, constants.WHITE)
@@ -40,6 +44,7 @@ def switchScene(scene):
 
     if curScene == constants.GAME_SCENE:
         timer = 0
+# === Utilities === #
 
 # === Menu Scene === #
 def drawMenuButton(text, p):
@@ -86,19 +91,15 @@ def processMenuScene():
                 gameManager.initGame(event.key - pygame.K_0)
             elif event.key == pygame.K_a:
                 config.ENABLE_AUTO = not config.ENABLE_AUTO
-                mess = "Toggle auto: " + str(config.ENABLE_AUTO)
-                subprocess.call("osascript -e '{}'".format("display dialog \"" + mess + "\" with title \"Message\" buttons {\"OK\"}"), shell=True)
+                showConfig()
             elif event.key == pygame.K_m:
                 config.ENABLE_MUSIC = not config.ENABLE_MUSIC
                 soundManager.onToggleMusic()
             elif event.key == pygame.K_c:
                 config.ENABLE_CHEAT = not config.ENABLE_CHEAT
-                mess = "Toggle cheat: " + str(config.ENABLE_CHEAT)
-                subprocess.call("osascript -e '{}'".format("display dialog \"" + mess + "\" with title \"Message\" buttons {\"OK\"}"), shell=True)
+                showConfig()
             elif event.key == pygame.K_s:
                 config.ENABLE_SFX = not config.ENABLE_SFX
-                mess = "Toggle sfx: " + str(config.ENABLE_SFX)
-                subprocess.call("osascript -e '{}'".format("display dialog \"" + mess + "\" with title \"Message\" buttons {\"OK\"}"), shell=True)
     # 2. process data
     # nothing to process
 
@@ -189,6 +190,11 @@ def processGameScene():
                 switchScene(constants.MENU_SCENE)
             elif event.key == pygame.K_TAB:
                 gameManager.pauseGame()
+            elif event.key == pygame.K_s:
+                config.ENABLE_SFX = not config.ENABLE_SFX
+            elif event.key == pygame.K_m:
+                config.ENABLE_MUSIC = not config.ENABLE_MUSIC
+                soundManager.onToggleMusic()
 
     # 2. process data
     timer += clock.get_time()
@@ -221,6 +227,11 @@ def processControlScene():
         elif event.type == pygame.KEYUP:
             if event.key in [pygame.K_ESCAPE, pygame.K_TAB]:
                 switchScene(constants.MENU_SCENE)
+            elif event.key == pygame.K_s:
+                config.ENABLE_SFX = not config.ENABLE_SFX
+            elif event.key == pygame.K_m:
+                config.ENABLE_MUSIC = not config.ENABLE_MUSIC
+                soundManager.onToggleMusic()
     # 2. process data
     # nothing to process
 
@@ -254,6 +265,7 @@ def processControlScene():
 # === main loop === #
 print('Game has started!')
 soundManager.playTheme()
+showConfig()
 while running:
     clock.tick(120)
     screen.fill(constants.BLACK)
