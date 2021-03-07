@@ -3,9 +3,6 @@ import pygame, math
 class Buff:
     POSITIVE = 1
     NEGATIVE = -1
-    groups = [
-        ["LongerBuff"]
-    ]
 
     def __init__(self, type, time, rate):
         self.type = type
@@ -65,3 +62,9 @@ class DenserBuff(Buff):
 
     def __init__(self):
         super().__init__(Buff.POSITIVE, 10, 0.1)
+
+class DoubleBuff(Buff):
+    _instance = None
+
+    def __init__(self):
+        super().__init__(Buff.POSITIVE, 0, 0.1)
