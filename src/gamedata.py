@@ -192,7 +192,7 @@ class GameManager:
 
             self.remainTime = max(0, self.remainTime - dt)
             if self.remainTime <= 0:
-                self.state == GameManager.LOSE
+                self.state = GameManager.LOSE
                 SoundManager.instance().playLoseEffect()
 
     def isRunning(self):

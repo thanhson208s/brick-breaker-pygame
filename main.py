@@ -247,6 +247,8 @@ def processControlScene():
     screen.blit(label, (config.WIDTH/2 - label.get_width()/2, config.TITLE_Y + 360))
     label = button_font.render("  TAB  pause game  ", False, constants.WHITE)
     screen.blit(label, (config.WIDTH/2 - label.get_width()/2, config.TITLE_Y + 390))
+    label = button_font.render("  0-9  choose level", False, constants.WHITE)
+    screen.blit(label, (config.WIDTH/2 - label.get_width()/2, config.TITLE_Y + 420))
 # === Control Scene === #
 
 # === main loop === #
