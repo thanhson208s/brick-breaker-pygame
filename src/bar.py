@@ -17,6 +17,13 @@ class Bar:
         self.speed = config.BAR_BASE_SPEED
         self.controlBuffer = []
 
+    def reviveGame(self):
+        self.p = pygame.math.Vector2(config.WIDTH/2, config.BAR_Y)
+        self.v = pygame.math.Vector2(0, 0)
+        self.length = config.BAR_BASE_LENGTH
+        self.speed = config.BAR_BASE_SPEED
+        self.controlBuffer = []
+
     def onControlStart(self, key):
         if key not in self.controlBuffer:
             self.controlBuffer.append(key)

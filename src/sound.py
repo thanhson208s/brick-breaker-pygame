@@ -2,13 +2,13 @@ import pygame, config
 
 class SoundManager:
     _instance = None
-    THEME_PATH = "res/theme.mp3"
-    BOUNCE_PATH = "res/bounce.wav"
-    BREAK_PATH = "res/break.wav"
-    HIT_WALL_PATH = "res/hit_wall.wav"
-    SCENE_TRANS_PATH = "res/scene_trans.wav"
-    WIN_PATH = "res/win.wav"
-    LOSE_PATH = "res/lose.wav"
+    THEME_PATH = "res/audio/theme.mp3"
+    BOUNCE_PATH = "res/audio/bounce.wav"
+    BREAK_PATH = "res/audio/break.wav"
+    HIT_WALL_PATH = "res/audio/hit_wall.wav"
+    SCENE_TRANS_PATH = "res/audio/scene_trans.wav"
+    WIN_PATH = "res/audio/win.wav"
+    LOSE_PATH = "res/audio/lose.wav"
 
     def __init__(self):
         pygame.mixer.music.load(SoundManager.THEME_PATH)

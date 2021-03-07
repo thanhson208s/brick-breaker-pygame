@@ -143,7 +143,11 @@ def drawTime(remainTime):
     label_time = fps_font.render((("" if m >= 10 else "0") + str(m)) + ":" + (("" if s >= 10 else "0") + str(s)), False, constants.WHITE)
     screen.blit(label_time, (config.WIDTH/2 - label_time.get_width()/2, config.HEIGHT - 20))
 
-def drawGameOver(point, state, isOutOfTime, isOutOfScreen):
+def drawLife(remainLifes):
+    for i in range(remainLifes):
+        pygame.draw.circle(screen, constants.BALL_COLOR, (12 + 20 * i, config.HEIGHT - 12), 8)
+
+def drawGameOver(point, state, isOutOfTime, isOutOfLife):
     label_game_over = title_font.render('GAME OVER', False, constants.WHITE)
     screen.blit(label_game_over, (config.WIDTH/2 - label_game_over.get_width()/2, config.TITLE_Y))
     
@@ -157,8 +161,8 @@ def drawGameOver(point, state, isOutOfTime, isOutOfScreen):
         desc = "You lose!"
         if isOutOfTime:
             desc += " Out of time."
-        if isOutOfScreen:
-            desc += " Out of screen."
+        if isOutOfLife:
+            desc += " Out of life."
     label_desc = button_font.render(desc, False, constants.WHITE)
     screen.blit(label_desc, (config.WIDTH/2 - label_desc.get_width()/2, config.HEIGHT * 1/4 - label_desc.get_height()/2))
 
@@ -193,16 +197,17 @@ def processGameScene():
         timer -= config.FRAME_TIME
 
     # 3. update GUI
-    if gameManager.state in [GameManager.READY, GameManager.RUN, GameManager.PAUSE]:
+    if gameManager.state in [GameManager.READY, GameManager.RUN, GameManager.PAUSE, GameManager.REVIVE]:
         drawBar(gameManager.bar)
         drawBall(gameManager.ball)
         drawPieces(gameManager.pieces)
         drawPoint(gameManager.point)
         drawTime(gameManager.remainTime)
+        drawLife(gameManager.remainLifes)
     elif gameManager.state == GameManager.WIN or gameManager.state == GameManager.LOSE:
         drawBar(gameManager.bar)
         drawBall(gameManager.ball)
-        drawGameOver(gameManager.point, gameManager.state, gameManager.isOutOfTime(), gameManager.isOutOfScreen())
+        drawGameOver(gameManager.point, gameManager.state, gameManager.isOutOfTime(), gameManager.isOutOfLife())
 # === Game Scene === #
 
 # === Control Scene === #
@@ -259,7 +264,7 @@ while running:
     elif (curScene == constants.CONTROL_SCENE):
         processControlScene()
 
-    showFps()
+    # showFps()
     pygame.display.flip()
 
 print('Game has stopped!')

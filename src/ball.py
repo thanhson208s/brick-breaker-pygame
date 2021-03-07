@@ -12,14 +12,16 @@ class Ball:
     def initGame(self):
         self.radius = config.BALL_RADIUS
         self.p = pygame.math.Vector2(config.WIDTH/2, config.BAR_Y - self.radius)
-        self.v = pygame.math.Vector2(0, 0)
+        self.v = pygame.math.Vector2(0, -config.BALL_BASE_SPEED)
         self.accelerationTimer = 0
+
+    def reviveGame(self):
+        self.radius = config.BALL_RADIUS
+        self.p = pygame.math.Vector2(config.WIDTH/2, config.BAR_Y - self.radius)
+        self.v = pygame.math.Vector2(0, -self.v.magnitude())
 
     def updateInitPosition(self, bar):
         self.p.x = bar.p.x
-
-    def startGame(self):
-        self.v.y = -config.BALL_BASE_SPEED
 
     def update(self, dt):
         self.accelerationTimer += dt / 1000

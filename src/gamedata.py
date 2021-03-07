@@ -2,6 +2,7 @@ from ball import *
 from bar import *
 from piece import *
 from sound import *
+from buff import *
 import constants, config
 import pygame, math, json
 
@@ -12,6 +13,7 @@ class GameManager:
     WIN = 100
     LOSE = -100
     PAUSE = 2
+    REVIVE = 3
 
     def __init__(self):
         self.state = GameManager.WAIT
@@ -21,6 +23,8 @@ class GameManager:
         self.point = None
         self.pointTimer = None
         self.remainTime = None
+        self.buffs = None
+        self.remainLifes = None
 
     def initGame(self, mapIndex=-1):
         self.state = GameManager.READY
@@ -31,6 +35,8 @@ class GameManager:
         self.point = 0
         self.pointTimer = 0
         self.remainTime = config.TOTAL_TIME * 1000
+        self.buffs = []
+        self.remainLifes = config.TOTAL_LIFE
 
     def initPieces(self):
         path = (config.MAP_FOLDER + str(self.mapIndex) + '.json') if self.mapIndex >= 0 else config.DEFAULT_MAP 
@@ -51,7 +57,6 @@ class GameManager:
 
     def startGame(self):
         self.state = GameManager.RUN
-        self.ball.startGame()
         SoundManager.instance().playCollideWithBarEffect()
 
     def pauseGame(self):
@@ -60,15 +65,19 @@ class GameManager:
         elif self.state == GameManager.PAUSE:
             self.state = GameManager.RUN
 
+    def reviveGame(self):
+        self.state = GameManager.REVIVE
+        self.ball.reviveGame()
+        self.bar.reviveGame()
+
     def endGame(self):
         self.state = GameManager.WAIT
 
     def onSpace(self):
-        if (self.state == GameManager.READY):
+        if (self.state in [GameManager.READY, GameManager.REVIVE]):
             self.startGame()
         elif self.state in [GameManager.WIN, GameManager.LOSE]:
             self.initGame(self.mapIndex)
-        
 
     def onControlStart(self, key):
         if (self.state == GameManager.WAIT):
@@ -111,6 +120,15 @@ class GameManager:
 
         return isCollided
 
+    def addBuff(self, buff):
+        if buff not in self.buffs:
+            self.buffs.append(buff)
+        buff.renew()
+
+    def removeBuff(self, buff):
+        if buff in self.buffs:
+            self.buffs.remove(buff)
+
     def update(self, dt):
         if self.state in [GameManager.WAIT, GameManager.PAUSE]:
             return
@@ -147,7 +165,14 @@ class GameManager:
                 self.state = GameManager.WIN
                 SoundManager.instance().playWinEffect()
             else:
-                if self.ball.p.y - self.ball.radius > config.HEIGHT or self.remainTime <= 0:
+                if self.ball.p.y - self.ball.radius > config.HEIGHT:
+                    self.remainLifes -= 1
+                    if self.remainLifes <= 0:
+                        self.state = GameManager.LOSE
+                        SoundManager.instance().playLoseEffect()
+                    else:
+                        self.reviveGame()
+                elif self.remainTime <= 0:
                     self.state = GameManager.LOSE
                     SoundManager.instance().playLoseEffect()
         elif self.state == GameManager.WIN:
@@ -158,6 +183,17 @@ class GameManager:
             self.ball.update(dt)
             if not self.checkCollideWithBorder():
                 self.bar.checkCollide(self.ball)
+        elif self.state == GameManager.REVIVE:
+            self.ball.updateInitPosition(self.bar)
+            self.pointTimer += dt / 1000
+            if self.pointTimer >= config.POINT_DECREASE_PERIOD:
+                self.pointTimer -= config.POINT_DECREASE_PERIOD
+                self.point = max(self.point - config.POINT_DECREASE_VALUE, 0)
+
+            self.remainTime = max(0, self.remainTime - dt)
+            if self.remainTime <= 0:
+                self.state == GameManager.LOSE
+                SoundManager.instance().playLoseEffect()
 
     def isRunning(self):
         return self.state == GameManager.RUN
@@ -165,5 +201,5 @@ class GameManager:
     def isOutOfTime(self):
         return self.remainTime <= 0
 
-    def isOutOfScreen(self):
-        return self.ball.p.y - self.ball.radius > config.HEIGHT
+    def isOutOfLife(self):
+        return self.remainLifes <= 0
